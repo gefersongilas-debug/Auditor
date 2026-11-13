@@ -13,10 +13,32 @@ const success = document.getElementById('successMsg');
 const submitButton = form?.querySelector('button[type="submit"]');
 const originalButtonText = submitButton?.textContent || 'Solicite um diagnóstico gratuito';
 let isSubmitting = false;
+// Máscara de telefone brasileiro com DDD: (00) 0000-0000 ou (00) 00000-0000.
+const phoneInput = form?.querySelector('input[name="telefone"]');
+const formatPhone = (value) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (!digits) return '';
+  if (digits.length <= 2) return `(${digits}`;
+  const ddd = digits.slice(0, 2);
+  const rest = digits.slice(2);
+  const split = digits.length > 10 ? 5 : 4;
+  return `(${ddd}) ${rest.slice(0, split)}${rest.length > split ? '-' + rest.slice(split) : ''}`;
+};
+phoneInput?.addEventListener('input', () => {
+  phoneInput.value = formatPhone(phoneInput.value);
+  phoneInput.setCustomValidity('');
+});
+phoneInput?.addEventListener('blur', () => {
+  const digits = phoneInput.value.replace(/\D/g, '');
+  phoneInput.setCustomValidity(digits.length === 10 || digits.length === 11 ? '' : 'Informe um telefone com DDD válido (10 ou 11 dígitos).');
+});
 
 form?.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (isSubmitting || !form.reportValidity()) return;
+  if (isSubmitting) return;
+  const phoneDigits = phoneInput?.value.replace(/\D/g, '') || '';
+  phoneInput?.setCustomValidity(phoneDigits.length === 10 || phoneDigits.length === 11 ? '' : 'Informe um telefone com DDD válido (10 ou 11 dígitos).');
+  if (!form.reportValidity()) return;
 
   const data = Object.fromEntries(new FormData(form).entries());
   const params = new URLSearchParams(window.location.search);

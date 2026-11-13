@@ -193,8 +193,8 @@
             <label>Faturamento aproximado<select name="faturamento"><option value="">Selecione</option><option>Até R$ 10 mi/ano</option><option>R$ 10 mi a R$ 50 mi/ano</option><option>R$ 50 mi a R$ 100 mi/ano</option><option>Acima de R$ 100 mi/ano</option></select></label>
             <label>Regime tributário<select name="regime"><option value="">Selecione</option><option>Lucro Real</option><option>Lucro Presumido</option><option>Outro</option></select></label>
             <label>Segmento<input name="segmento" placeholder="Ex.: indústria de alimentos"></label>
-            <label>Telefone<input name="telefone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(00) 00000-0000"></label>
-            <label>E-mail<input type="email" name="email" autocomplete="email" required placeholder="voce@empresa.com.br"></label>
+            <label>Telefone<input name="telefone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="15" minlength="14" required placeholder="(00) 00000-0000" title="Informe um telefone com DDD (10 ou 11 dígitos)"></label>
+            <label>E-mail<input type="email" name="email" autocomplete="email" maxlength="254" required placeholder="voce@empresa.com.br"></label>
             <label class="full">Sua empresa exporta?<select name="exporta"><option value="">Selecione</option><option>Sim</option><option>Não</option></select></label>
           </div>
           <button class="btn full-btn" type="submit">Solicite um diagnóstico gratuito</button>

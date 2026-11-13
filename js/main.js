@@ -7,15 +7,64 @@ const observer = new IntersectionObserver((entries)=>{
 
 document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 
+// Envio do formulário via função da Vercel, sem expor o webhook do Make no navegador.
 const form = document.getElementById('leadForm');
 const success = document.getElementById('successMsg');
-form?.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  success.style.display = 'block';
+const submitButton = form?.querySelector('button[type="submit"]');
+const originalButtonText = submitButton?.textContent || 'Solicite um diagnóstico gratuito';
+let isSubmitting = false;
 
+form?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (isSubmitting || !form.reportValidity()) return;
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const params = new URLSearchParams(window.location.search);
+  const payload = {
+    ...data,
+    origem: 'Landing Page Auditor Consultores',
+    url_pagina: window.location.href,
+    referrer: document.referrer || '',
+    data_envio: new Date().toISOString(),
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_content: params.get('utm_content') || '',
+    utm_term: params.get('utm_term') || '',
+    gclid: params.get('gclid') || '',
+    fbclid: params.get('fbclid') || ''
+  };
+
+  isSubmitting = true;
+  submitButton.disabled = true;
+  submitButton.textContent = 'Enviando...';
+  success.style.display = 'none';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error('O envio não foi confirmado.');
+
+    // O GTM recebe o evento apenas após confirmação do servidor.
+    document.dispatchEvent(new CustomEvent('auditor:lead-success'));
+    window.setTimeout(() => window.location.assign('/obrigado/'), 450);
+  } catch (error) {
+    console.error('Não foi possível enviar o formulário:', error);
+    success.textContent = 'Não foi possível enviar sua solicitação. Tente novamente em instantes.';
+    success.style.display = 'block';
+    submitButton.disabled = false;
+    submitButton.textContent = originalButtonText;
+    isSubmitting = false;
+  } finally {
+    clearTimeout(timeout);
+  }
 });
-
-  
 
 
 (()=>{
